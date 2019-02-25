@@ -1,0 +1,99 @@
+{
+  "project_info": {
+    "project_number": "774294674592",
+    "firebase_url": "https://bookthecar-d67de.firebaseio.com",
+    "project_id": "bookthecar-d67de",
+    "storage_bucket": "bookthecar-d67de.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:774294674592:android:436e3ec4d355c7a2",
+        "android_client_info": {
+          "package_name": "com.example.capture"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "774294674592-da69315i44ehqcagaqtk6qo9b1hsoqp2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.capture",
+            "certificate_hash": "f8714bee58348c856e167fceb1453500e8bd23ce"
+          }
+        },
+        {
+          "client_id": "774294674592-9jugi1t30751uqj3i7nopmnkjciprsl4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDWLgyoDH19Zql_XvH6_n5_83IXbG78X0o"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "774294674592-9jugi1t30751uqj3i7nopmnkjciprsl4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:774294674592:android:6aa06dbfa2db53e0",
+        "android_client_info": {
+          "package_name": "com.example.isha.bookthecar"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "774294674592-ehfhrkjckrsf0sr2m49ncg9r06a1gfbs.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.isha.bookthecar",
+            "certificate_hash": "e521f70483927ee7d0e32eb535233e6eb39e3378"
+          }
+        },
+        {
+          "client_id": "774294674592-9jugi1t30751uqj3i7nopmnkjciprsl4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDWLgyoDH19Zql_XvH6_n5_83IXbG78X0o"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "774294674592-9jugi1t30751uqj3i7nopmnkjciprsl4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
