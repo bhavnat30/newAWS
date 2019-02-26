@@ -1,15 +1,22 @@
 package com.example.capture;
 
+import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -40,7 +47,8 @@ public class MainActivity extends AppCompatActivity {
     private Uri filePath;
     private static final int GALLERY_INTENT = 2;
     private static final int CAMERA_REQUEST = 14;
-    Task<Uri> downloadUri;
+    String uid;
+    SharedPreferences sharedPreferences;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
         btnUpload=(Button)findViewById(R.id.btnUpload);
         btnDownload=(Button)findViewById(R.id.btnDownload);
         imageView=(ImageView)findViewById(R.id.imgView);
-
+        sharedPreferences=getSharedPreferences("DRScan", Context.MODE_PRIVATE);
         btnDownload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -74,13 +82,16 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void uploadImage(){
-           if(filePath!=null)
-           {
+           if(filePath!=null )
+           {uid=UUID.randomUUID().toString();
+           SharedPreferences.Editor editor= sharedPreferences.edit();
+               editor.putString("uid_key",uid);
+               editor.apply();
                final ProgressDialog progressDialog=new ProgressDialog(this);
                progressDialog.setTitle("Uploading...");
                progressDialog.show();
 
-               StorageReference ref = storageReference.child("images/"+ UUID.randomUUID().toString());
+               StorageReference ref = storageReference.child("images/"+ uid);
 
                ref.putFile(filePath)
                        .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -111,11 +122,41 @@ public class MainActivity extends AppCompatActivity {
 
     }
     private void downloadImage(){
-        String urlImage="https://firebasestorage.googleapis.com/v0/b/bookthecar-d67de.appspot.com/o/images%2F3c9db418-3228-49c6-86c0-c3a06efd9433?alt=media&token=3f4d9974-7ff0-4637-b829-6d76c0a6f342";
-        Glide.with(MainActivity.this)
-                .load(urlImage)
-                .into(imageView);
 
+        if(!sharedPreferences.contains("uid_key")){
+            Toast.makeText(MainActivity.this,"No image uploaded yet", Toast.LENGTH_SHORT).show();
+        }
+        else {
+
+            String getID = sharedPreferences.getString("uid_key","");
+
+
+
+            FirebaseStorage firebaseStorage=FirebaseStorage.getInstance();
+            StorageReference mImage= firebaseStorage.getReferenceFromUrl("gs://bookthecar-d67de.appspot.com/images/"+getID);
+            final long size=5120*5120;
+            mImage.getBytes(size).addOnSuccessListener((new OnSuccessListener<byte[]>() {
+                @Override
+                public void onSuccess(byte[] bytes) {
+                    Bitmap bim = BitmapFactory.decodeByteArray(bytes,0,bytes.length);
+                    DisplayMetrics dm=new DisplayMetrics();
+                    getWindowManager().getDefaultDisplay().getMetrics(dm);
+                    imageView.setMinimumHeight(dm.heightPixels);
+                    imageView.setMinimumWidth(dm.widthPixels);
+                    imageView.setImageBitmap(bim);
+                    Toast.makeText(MainActivity.this,"Last Uploaded image", Toast.LENGTH_SHORT).show();
+                }
+            })
+            ).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Toast.makeText(MainActivity.this,"Problem in downloading file", Toast.LENGTH_SHORT).show();
+                }
+            });
+//            Glide.with(MainActivity.this)
+//                    .load(uid)
+//                    .into(imageView);
+        }
     }
 
     @TargetApi(22)
@@ -133,9 +174,6 @@ public class MainActivity extends AppCompatActivity {
         //need to change code for camera upload
           if(requestCode==CAMERA_REQUEST)
           {
-              filePath=Uri.parse("content://com.android.providers.media.documents/document");
-
-
               Bitmap bitmap=(Bitmap)data.getExtras().get("data");
               imageView.setImageBitmap(bitmap);
           }
@@ -158,6 +196,13 @@ public class MainActivity extends AppCompatActivity {
       }
 
     public void OpenCamera(View view) {
+        if(Build.VERSION.SDK_INT>=23)
+        {
+            if(checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+            {
+                ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
+            }
+        }
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         startActivityForResult(intent,CAMERA_REQUEST);
     }
