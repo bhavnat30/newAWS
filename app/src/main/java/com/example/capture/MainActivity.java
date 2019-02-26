@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private Uri filePath;
     private static final int GALLERY_INTENT = 2;
     private static final int CAMERA_REQUEST = 14;
-
+    Task<Uri> downloadUri;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -88,6 +88,7 @@ public class MainActivity extends AppCompatActivity {
                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                                progressDialog.dismiss();
                                Toast.makeText(MainActivity.this,"Uploaded", Toast.LENGTH_SHORT).show();
+                               //downloadUri= taskSnapshot.getStorage().getDownloadUrl();
                            }
                        }).addOnFailureListener(new OnFailureListener() {
                    @Override
@@ -110,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
     private void downloadImage(){
-        String urlImage="gs://bookthecar-d67de.appspot.com/images/3c9db418-3228-49c6-86c0-c3a06efd9433";
+        String urlImage="https://firebasestorage.googleapis.com/v0/b/bookthecar-d67de.appspot.com/o/images%2F3c9db418-3228-49c6-86c0-c3a06efd9433?alt=media&token=3f4d9974-7ff0-4637-b829-6d76c0a6f342";
         Glide.with(MainActivity.this)
                 .load(urlImage)
                 .into(imageView);
@@ -129,6 +130,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode,int resultCode,Intent data){
         super.onActivityResult(requestCode, resultCode, data);
+        //need to change code for camera upload
           if(requestCode==CAMERA_REQUEST)
           {
               filePath=Uri.parse("content://com.android.providers.media.documents/document");
