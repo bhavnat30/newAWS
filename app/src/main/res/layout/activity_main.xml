@@ -23,7 +23,7 @@
             android:layout_alignStart="@+id/layout_button"
             android:layout_alignLeft="@+id/layout_button"
             android:layout_weight="1"
-            android:text="Choose" />
+            android:text="Choose from device" />
 
         <Button
             android:id="@+id/btnUpload"
@@ -44,7 +44,7 @@
 
     <ImageView
         android:id="@+id/imgView"
-        android:layout_width="383dp"
+        android:layout_width="wrap_content"
         android:layout_height="498dp"
         android:layout_below="@id/layout_button"
         android:layout_marginTop="14dp" />
@@ -54,8 +54,7 @@
         android:layout_width="156dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:onClick="OpenCamera"
-        android:text="Open Camera" />
+        android:text="Use Camera" />
 
 
 </RelativeLayout>

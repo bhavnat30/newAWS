@@ -41,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
     private Button btnChoose;
     private Button btnUpload;
     private Button btnDownload;
+    private Button openCamera;
     FirebaseStorage storage;
     StorageReference storageReference;
     private ImageView imageView;
@@ -49,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int CAMERA_REQUEST = 14;
     String uid;
     SharedPreferences sharedPreferences;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
         btnChoose = (Button) findViewById(R.id.btnChoose);
         btnUpload=(Button)findViewById(R.id.btnUpload);
         btnDownload=(Button)findViewById(R.id.btnDownload);
+        openCamera=(Button)findViewById(R.id.openCamera);
         imageView=(ImageView)findViewById(R.id.imgView);
         sharedPreferences=getSharedPreferences("DRScan", Context.MODE_PRIVATE);
         btnDownload.setOnClickListener(new View.OnClickListener() {
@@ -78,12 +81,20 @@ public class MainActivity extends AppCompatActivity {
                    uploadImage();
             }
         });
+        openCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, cameraActivity.class));
+            }
+        });
     }
 
 
     private void uploadImage(){
+
            if(filePath!=null )
-           {uid=UUID.randomUUID().toString();
+           { Log.i("Inside uploadImage()","");
+               uid=UUID.randomUUID().toString();
            SharedPreferences.Editor editor= sharedPreferences.edit();
                editor.putString("uid_key",uid);
                editor.apply();
@@ -167,16 +178,39 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(Intent.createChooser(intent,"Select Picture"),GALLERY_INTENT);
     }
 
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+
     @Override
     protected void onActivityResult(int requestCode,int resultCode,Intent data){
         super.onActivityResult(requestCode, resultCode, data);
         //need to change code for camera upload
-          if(requestCode==CAMERA_REQUEST)
-          {
-              Bitmap bitmap=(Bitmap)data.getExtras().get("data");
-              imageView.setImageBitmap(bitmap);
-          }
+//          if(requestCode==CAMERA_REQUEST && resultCode==RESULT_OK)
+//          {
+////              progressDialog.setTitle("Uploading...");
+////              progressDialog.show();
+//
+//           filePath=data.getData();
+//           if(filePath!=null)
+//               Log.i("FilePath is empty!!!!","");
+////              StorageReference filePath=storageReference.child("images").child(uri.getLastPathSegment());
+////              filePath.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+////                  @Override
+////                  public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+////                         progressDialog.dismiss();
+////                         Toast.makeText(MainActivity.this,"Uplaoding Finished...",Toast.LENGTH_LONG).show();
+////                  }
+////              }).addOnFailureListener(new OnFailureListener() {
+////                  @Override
+////                  public void onFailure(@NonNull Exception e) {
+////
+////                  }
+////              });
+//
+//
+//                  Bitmap bitmap = (Bitmap)data.getExtras().get("data");
+//                  Log.i("To set in image view!!!",bitmap.toString());
+//                  imageView.setImageBitmap(bitmap);
+//
+//          }
         if(requestCode== GALLERY_INTENT && resultCode==RESULT_OK
         && data!= null && data.getData()!=null)
         {
@@ -195,17 +229,17 @@ public class MainActivity extends AppCompatActivity {
 
       }
 
-    public void OpenCamera(View view) {
-        if(Build.VERSION.SDK_INT>=23)
-        {
-            if(checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
-            {
-                ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
-            }
-        }
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        startActivityForResult(intent,CAMERA_REQUEST);
-    }
+//    private void openCamera() {
+////        if(Build.VERSION.SDK_INT>=23)
+////        {
+////            if(checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+////            {
+////                ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
+////            }
+////        }
+//        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//        startActivityForResult(intent,CAMERA_REQUEST);
+//    }
 
 
 
