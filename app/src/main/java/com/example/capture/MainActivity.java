@@ -11,9 +11,11 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
@@ -33,7 +35,10 @@ import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
@@ -47,9 +52,13 @@ public class MainActivity extends AppCompatActivity {
     private ImageView imageView;
     private Uri filePath;
     private static final int GALLERY_INTENT = 2;
-    private static final int CAMERA_REQUEST = 14;
+    private static final int CAMERA_REQUEST_CODE=1;
+    String mCurrentPhotoPath;
+    Uri photoURI;
+
     String uid;
     SharedPreferences sharedPreferences;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,10 +93,54 @@ public class MainActivity extends AppCompatActivity {
         openCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, cameraActivity.class));
+                dispatchTakePictureIntent();
+
             }
         });
     }
+    private void dispatchTakePictureIntent() {
+
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+// Ensure that there's a camera activity to handle the intent
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            // Create the File where the photo should go
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                // Error occurred while creating the File...
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                photoURI = FileProvider.getUriForFile(this,
+                        "com.example.android.fileprovider",
+                        photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE);
+
+            }
+        }
+
+
+
+    }
+    private File createImageFile() throws IOException {
+// Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+// Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoPath = image.getAbsolutePath();
+        return image;
+    }
+
+
 
 
     private void uploadImage(){
@@ -95,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
            if(filePath!=null )
            { Log.i("Inside uploadImage()","");
                uid=UUID.randomUUID().toString();
-           SharedPreferences.Editor editor= sharedPreferences.edit();
+               SharedPreferences.Editor editor= sharedPreferences.edit();
                editor.putString("uid_key",uid);
                editor.apply();
                final ProgressDialog progressDialog=new ProgressDialog(this);
@@ -133,12 +186,10 @@ public class MainActivity extends AppCompatActivity {
 
     }
     private void downloadImage(){
-
-        if(!sharedPreferences.contains("uid_key")){
+        if(!sharedPreferences.contains("uid_key") ){
             Toast.makeText(MainActivity.this,"No image uploaded yet", Toast.LENGTH_SHORT).show();
         }
         else {
-
             String getID = sharedPreferences.getString("uid_key","");
 
 
@@ -182,35 +233,30 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode,int resultCode,Intent data){
         super.onActivityResult(requestCode, resultCode, data);
-        //need to change code for camera upload
-//          if(requestCode==CAMERA_REQUEST && resultCode==RESULT_OK)
-//          {
-////              progressDialog.setTitle("Uploading...");
-////              progressDialog.show();
-//
-//           filePath=data.getData();
-//           if(filePath!=null)
-//               Log.i("FilePath is empty!!!!","");
-////              StorageReference filePath=storageReference.child("images").child(uri.getLastPathSegment());
-////              filePath.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-////                  @Override
-////                  public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-////                         progressDialog.dismiss();
-////                         Toast.makeText(MainActivity.this,"Uplaoding Finished...",Toast.LENGTH_LONG).show();
-////                  }
-////              }).addOnFailureListener(new OnFailureListener() {
-////                  @Override
-////                  public void onFailure(@NonNull Exception e) {
-////
-////                  }
-////              });
-//
-//
-//                  Bitmap bitmap = (Bitmap)data.getExtras().get("data");
-//                  Log.i("To set in image view!!!",bitmap.toString());
-//                  imageView.setImageBitmap(bitmap);
-//
-//          }
+        final ProgressDialog progressDialog=new ProgressDialog(this);
+        if(requestCode==CAMERA_REQUEST_CODE && resultCode==RESULT_OK){
+            progressDialog.setMessage("Uploading image....");
+            progressDialog.show();
+            Uri uri = photoURI;
+            SharedPreferences.Editor editor= sharedPreferences.edit();
+            editor.putString("uid_key", uri.getLastPathSegment());
+            editor.apply();
+            StorageReference filePath = storageReference.child("images/"+uri.getLastPathSegment());
+            filePath.putFile(photoURI).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    progressDialog.dismiss();
+                    Toast.makeText(MainActivity.this,"Uploading Finished...",Toast.LENGTH_LONG).show();
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Toast.makeText(MainActivity.this, "Upload Failed!", Toast.LENGTH_SHORT).show();
+                }
+            });;
+        }
+       else
+
         if(requestCode== GALLERY_INTENT && resultCode==RESULT_OK
         && data!= null && data.getData()!=null)
         {
@@ -228,19 +274,6 @@ public class MainActivity extends AppCompatActivity {
 
 
       }
-
-//    private void openCamera() {
-////        if(Build.VERSION.SDK_INT>=23)
-////        {
-////            if(checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
-////            {
-////                ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
-////            }
-////        }
-//        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-//        startActivityForResult(intent,CAMERA_REQUEST);
-//    }
-
 
 
     }
