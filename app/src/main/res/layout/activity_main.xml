@@ -1,60 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:padding="16dp"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    android:orientation="vertical"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp">
 
     <LinearLayout
-        android:id="@+id/layout_button"
-        android:layout_width="363dp"
-        android:layout_height="80dp"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="72dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="3">
+
+        <Button
+            android:id="@+id/btn_choose_file"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Choose File" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:weightSum="2">
 
         <Button
-            android:id="@+id/btnChoose"
-            android:layout_width="25dp"
-            android:layout_height="36dp"
-            android:layout_alignStart="@+id/layout_button"
-            android:layout_alignLeft="@+id/layout_button"
-            android:layout_weight="1"
-            android:text="Choose from device" />
-
-        <Button
-            android:id="@+id/btnUpload"
-            android:layout_width="40dp"
-            android:layout_height="37dp"
+            android:id="@+id/btn_upload"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Upload" />
 
         <Button
-            android:id="@+id/btnDownload"
-            android:layout_width="wrap_content"
-            android:layout_height="38dp"
+            android:id="@+id/btn_download"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Download" />
 
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tv_file_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_margin="5dp"
+        android:text="File Name" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:weightSum="5">
+
+        <ImageView
+            android:id="@+id/img_file"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="4.7" />
 
     </LinearLayout>
 
-    <ImageView
-        android:id="@+id/imgView"
-        android:layout_width="wrap_content"
-        android:layout_height="498dp"
-        android:layout_below="@id/layout_button"
-        android:layout_marginTop="14dp" />
-
-    <Button
-        android:id="@+id/openCamera"
-        android:layout_width="156dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Use Camera" />
-
-
-</RelativeLayout>
+</LinearLayout>

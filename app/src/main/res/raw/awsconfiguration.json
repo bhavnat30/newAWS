@@ -1,0 +1,38 @@
+{
+  "UserAgent": "MobileHub/1.0",
+  "Version": "1.0",
+  "CredentialsProvider": {
+    "CognitoIdentity": {
+      "Default": {
+        "PoolId": "us-east-1:a2233e97-38e4-44c2-91b4-8b977564f652",
+        "Region": "us-east-1"
+      }
+    }
+  },
+  "IdentityManager": {
+    "Default": {}
+  },
+  "S3TransferUtility": {
+    "Default": {
+      "Bucket": "capture-userfiles-mobilehub-388902514",
+      "Region": "us-east-1"
+    }
+  },
+  "PinpointAnalytics": {
+    "Default": {
+      "AppId": "0f7b92723bb7477d8c82a999732c84bb",
+      "Region": "us-east-1"
+    }
+  },
+  "PinpointTargeting": {
+    "Default": {
+      "Region": "us-east-1"
+    }
+  },
+  "UserFileManager": {
+    "Default": {
+      "Bucket": "capture-userfiles-mobilehub-388902514",
+      "Region": "us-east-1"
+    }
+  }
+}
