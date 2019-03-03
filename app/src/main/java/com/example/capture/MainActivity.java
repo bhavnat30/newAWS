@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Uri fileUri;
     private Bitmap bitmap;
-
+    String fileName;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void uploadFile() {
 
         if (fileUri != null) {
-            String fileName=getFileName(fileUri);
+            fileName=getFileName(fileUri);
 
                // final File file = new File(String.valueOf(fileUri));
             final File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)+
@@ -169,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 .build();
 
                 TransferObserver downloadObserver =
-                        transferUtility.download("images/" + fileUri.toString() + "." + getFileExtension(fileUri), localFile);
+                        transferUtility.download("images/" + fileName, localFile);
 
                 downloadObserver.setTransferListener(new TransferListener() {
 
