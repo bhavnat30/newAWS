@@ -3,11 +3,13 @@ package com.example.capture;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.provider.OpenableColumns;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -76,12 +78,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void uploadFile() {
 
         if (fileUri != null) {
+            String fileName=getFileName(fileUri);
 
                // final File file = new File(String.valueOf(fileUri));
-            final File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)+
-                    "/" + fileUri.getPath());
+            final File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)+
+                    "/Camera/" + fileName);
 
-            createFile(getApplicationContext(), fileUri, file);
+            //createFile(getApplicationContext(), fileUri, file);
 
             TransferUtility transferUtility =
                     TransferUtility.builder()
@@ -92,10 +95,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 //            Log.i("fileUri",fileUri.toString());
 //            Log.i("file",file.getAbsolutePath());
-//            Log.i("path",fileUri.getLastPathSegment());
+           Log.i("path",fileUri.toString());
 //            Log.i("directory",String.valueOf(getExternalFilesDir(Environment.DIRECTORY_DCIM)));
+
+            Log.i("fileName:::",fileName);
             TransferObserver uploadObserver =
-                    transferUtility.upload("DRTwo/" + fileUri.toString()+ "." + getFileExtension(fileUri), file);
+                    transferUtility.upload("images/"+ fileName, file);
 
             uploadObserver.setTransferListener(new TransferListener() {
 
@@ -109,6 +114,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         file.delete();
                     }
                 }
+
 
                 @Override
                 public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
@@ -126,6 +132,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             });
         }
     }
+    public String getFileName(Uri uri) {
+        String result = null;
+        if (uri.getScheme().equals("content")) {
+            Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+            try {
+                if (cursor != null && cursor.moveToFirst()) {
+                    result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                }
+            } finally {
+                cursor.close();
+            }
+        }
+        if (result == null) {
+            result = uri.getPath();
+            int cut = result.lastIndexOf('/');
+            if (cut != -1) {
+                result = result.substring(cut + 1);
+            }
+        }
+        return result;
+    }
 
     private void downloadFile() {
         if (fileUri != null) {
@@ -142,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 .build();
 
                 TransferObserver downloadObserver =
-                        transferUtility.download("DRTwo/" + fileUri.toString() + "." + getFileExtension(fileUri), localFile);
+                        transferUtility.download("images/" + fileUri.toString() + "." + getFileExtension(fileUri), localFile);
 
                 downloadObserver.setTransferListener(new TransferListener() {
 
