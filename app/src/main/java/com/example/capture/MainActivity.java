@@ -131,15 +131,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         response.append(currentLine);
 
                     in.close();
-//                    JSONObject jsonResponse = new JSONObject(response.toString());
-//                    String value = jsonResponse.getString("Body");
+                    JSONObject jsonResponse = new JSONObject(response.toString());
+                    String value = jsonResponse.getString("Body");
+
 
                     Log.i("STATUS", String.valueOf(conn.getResponseCode()));
                     Log.i("MSG" , String.valueOf(response));
                     //Log.i("Body",value);
-                    txtView.setText("Healthy Eye");
+                    if(!value.equals(null))
+                        txtView.setText(value);
+
+                    else {
+                        txtView.setText("Healthy Eye");
                     txtView.setTextColor(Color.GREEN);
-                    txtView.setAllCaps(true);
+                    txtView.setAllCaps(true);}
 
                     conn.disconnect();
                 } catch (Exception e) {
