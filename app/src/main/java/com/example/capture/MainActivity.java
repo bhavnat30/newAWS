@@ -1,12 +1,15 @@
 package com.example.capture;
 
+import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
@@ -23,6 +26,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.amazonaws.auth.BasicAWSCredentials;
+//import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
+import com.amazonaws.http.HttpClient;
+import com.amazonaws.http.HttpResponse;
 import com.amazonaws.mobile.client.AWSMobileClient;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver;
@@ -31,11 +37,20 @@ import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.util.IOUtils;
 
+
+import org.json.JSONObject;
+
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -49,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final int CHOOSING_IMAGE_REQUEST = 1234;
 
     private TextView tvFileName;
+    private TextView txtView;
     private ImageView imageView;
     private EditText edtFileName;
 
@@ -64,6 +80,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         tvFileName = findViewById(R.id.tv_file_name);
         tvFileName.setText("");
+        txtView=findViewById(R.id.txtView);
 
         findViewById(R.id.btn_choose_file).setOnClickListener(this);
         findViewById(R.id.btn_upload).setOnClickListener(this);
@@ -74,13 +91,90 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         credentials = new BasicAWSCredentials(KEY, SECRET);
         s3Client = new AmazonS3Client(credentials);
     }
+    public void postRequest() throws IOException {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    URL url = new URL("https://h93lee9m0e.execute-api.eu-west-1.amazonaws.com/PRD_Inference");
+                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    conn.setRequestMethod("POST");
+                    conn.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
+                    conn.setRequestProperty("Accept","application/json");
+                    conn.setDoOutput(true);
+                    conn.setDoInput(true);
+
+                    JSONObject jsonParam = new JSONObject();
+                    jsonParam.put("S3imgKey","images/IMG_20190303_180051.jpg");
+                    Log.i("JSON", jsonParam.toString());
+                    DataOutputStream os = new DataOutputStream(conn.getOutputStream());
+                    //os.writeBytes(URLEncoder.encode(jsonParam.toString(), "UTF-8"));
+                    os.writeBytes(jsonParam.toString());
+
+                    os.flush();
+                    os.close();
+                    InputStream inputStream;
+                    //if (200 <= responseCode && responseCode <= 299) {
+                        inputStream = conn.getInputStream();
+//                    } else {
+//                        inputStream = conn.getErrorStream();
+//                    }
+
+                    BufferedReader in = new BufferedReader(
+                            new InputStreamReader(
+                                    inputStream));
+
+                    StringBuilder response = new StringBuilder();
+                    String currentLine;
+
+                    while ((currentLine = in.readLine()) != null)
+                        response.append(currentLine);
+
+                    in.close();
+//                    JSONObject jsonResponse = new JSONObject(response.toString());
+//                    String value = jsonResponse.getString("Body");
+
+                    Log.i("STATUS", String.valueOf(conn.getResponseCode()));
+                    Log.i("MSG" , String.valueOf(response));
+                    //Log.i("Body",value);
+                    txtView.setText("Healthy Eye");
+                    txtView.setTextColor(Color.GREEN);
+                    txtView.setAllCaps(true);
+
+                    conn.disconnect();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        thread.start();
+    }
+
+
+
+    public String getPath(Uri uri) {
+        String[] projection = { MediaStore.Images.Media.DATA };
+        Cursor cursor = getContentResolver().query(uri, projection, null, null, null);
+        int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+        cursor.moveToFirst();
+        int columnIndex = cursor.getColumnIndex(projection[0]);
+        String filePath = cursor.getString(columnIndex);
+        return cursor.getString(column_index);
+    }
+
 
     private void uploadFile() {
 
         if (fileUri != null) {
             fileName=getFileName(fileUri);
+            String path = getPath(fileUri);
+
+
+
 
                // final File file = new File(String.valueOf(fileUri));
+           // final File file = new File(MediaStore.Images.Media.EXTERNAL_CONTENT_URI+"/"+ fileName);
             final File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)+
                     "/Camera/" + fileName);
 
@@ -96,7 +190,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //            Log.i("fileUri",fileUri.toString());
 //            Log.i("file",file.getAbsolutePath());
            Log.i("path",fileUri.toString());
-//            Log.i("directory",String.valueOf(getExternalFilesDir(Environment.DIRECTORY_DCIM)));
+          // Log.i("directory",getFileStreamPath(fileUri.toString())+"/"+fileName);
 
             Log.i("fileName:::",fileName);
             TransferObserver uploadObserver =
@@ -149,61 +243,67 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             int cut = result.lastIndexOf('/');
             if (cut != -1) {
                 result = result.substring(cut + 1);
+
             }
         }
         return result;
     }
 
+
     private void downloadFile() {
-        if (fileUri != null) {
+        imageView.setVisibility(View.INVISIBLE);
+        txtView.setVisibility(View.VISIBLE);
 
 
-            try {
-                final File localFile = File.createTempFile("images", getFileExtension(fileUri));
-
-                TransferUtility transferUtility =
-                        TransferUtility.builder()
-                                .context(getApplicationContext())
-                                .awsConfiguration(AWSMobileClient.getInstance().getConfiguration())
-                                .s3Client(s3Client)
-                                .build();
-
-                TransferObserver downloadObserver =
-                        transferUtility.download("images/" + fileName, localFile);
-
-                downloadObserver.setTransferListener(new TransferListener() {
-
-                    @Override
-                    public void onStateChanged(int id, TransferState state) {
-                        if (TransferState.COMPLETED == state) {
-                            Toast.makeText(getApplicationContext(), "Download Completed!", Toast.LENGTH_SHORT).show();
-
-                            tvFileName.setText(fileUri.toString() + "." + getFileExtension(fileUri));
-                            Bitmap bmp = BitmapFactory.decodeFile(localFile.getAbsolutePath());
-                            imageView.setImageBitmap(bmp);
-                        }
-                    }
-
-                    @Override
-                    public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
-                        float percentDonef = ((float) bytesCurrent / (float) bytesTotal) * 100;
-                        int percentDone = (int) percentDonef;
-
-                        tvFileName.setText("ID:" + id + "|bytesCurrent: " + bytesCurrent + "|bytesTotal: " + bytesTotal + "|" + percentDone + "%");
-                    }
-
-                    @Override
-                    public void onError(int id, Exception ex) {
-                        ex.printStackTrace();
-                    }
-
-                });
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else {
-            Toast.makeText(this, "Upload file before downloading", Toast.LENGTH_LONG).show();
-        }
+//        if (fileUri != null) {
+//
+//
+//            try {
+//                final File localFile = File.createTempFile("images", getFileExtension(fileUri));
+//
+//                TransferUtility transferUtility =
+//                        TransferUtility.builder()
+//                                .context(getApplicationContext())
+//                                .awsConfiguration(AWSMobileClient.getInstance().getConfiguration())
+//                                .s3Client(s3Client)
+//                                .build();
+//
+//                TransferObserver downloadObserver =
+//                        transferUtility.download("images/" + fileName, localFile);
+//
+//                downloadObserver.setTransferListener(new TransferListener() {
+//
+//                    @Override
+//                    public void onStateChanged(int id, TransferState state) {
+//                        if (TransferState.COMPLETED == state) {
+//                            Toast.makeText(getApplicationContext(), "Download Completed!", Toast.LENGTH_SHORT).show();
+//
+//                            tvFileName.setText(fileUri.toString() + "." + getFileExtension(fileUri));
+//                            Bitmap bmp = BitmapFactory.decodeFile(localFile.getAbsolutePath());
+//                            imageView.setImageBitmap(bmp);
+//                        }
+//                    }
+//
+//                    @Override
+//                    public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
+//                        float percentDonef = ((float) bytesCurrent / (float) bytesTotal) * 100;
+//                        int percentDone = (int) percentDonef;
+//
+//                        tvFileName.setText("ID:" + id + "|bytesCurrent: " + bytesCurrent + "|bytesTotal: " + bytesTotal + "|" + percentDone + "%");
+//                    }
+//
+//                    @Override
+//                    public void onError(int id, Exception ex) {
+//                        ex.printStackTrace();
+//                    }
+//
+//                });
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        } else {
+//            Toast.makeText(this, "Upload file before downloading", Toast.LENGTH_LONG).show();
+//        }
     }
 
     @Override
@@ -214,6 +314,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             showChoosingFile();
         } else if (i == R.id.btn_upload) {
             uploadFile();
+            try {
+                postRequest();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         } else if (i == R.id.btn_download) {
             downloadFile();
         }
