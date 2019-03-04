@@ -54,8 +54,8 @@ import java.net.URL;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private final String KEY = "AKIAJKMLNJOADKMPS5QQ";
-    private final String SECRET = "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";
+    private final String KEY = "******";
+    private final String SECRET = "*******";
 
     private AmazonS3Client s3Client;
     private BasicAWSCredentials credentials;
