@@ -55,7 +55,7 @@ import java.net.URL;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private final String KEY = "******";
-    private final String SECRET = "*******";
+    private final String SECRET = "************";
 
     private AmazonS3Client s3Client;
     private BasicAWSCredentials credentials;
@@ -92,9 +92,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         s3Client = new AmazonS3Client(credentials);
     }
     public void postRequest() throws IOException {
+        StringBuilder response = new StringBuilder();
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
+                String value=null;
                 try {
                     URL url = new URL("https://h93lee9m0e.execute-api.eu-west-1.amazonaws.com/PRD_Inference");
                     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -131,20 +133,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         response.append(currentLine);
 
                     in.close();
-                    JSONObject jsonResponse = new JSONObject(response.toString());
-                    String value = jsonResponse.getString("Body");
+
+
 
 
                     Log.i("STATUS", String.valueOf(conn.getResponseCode()));
-                    Log.i("MSG" , String.valueOf(response));
+                    //Log.i("MSG" , String.valueOf(response));
                     //Log.i("Body",value);
-                    if(!value.equals(null))
-                        txtView.setText(value);
+                    JSONObject jsonResponse = new JSONObject(response.toString());
+                    if(jsonResponse.has("Body"))
+                        txtView.setText(jsonResponse.getString("Body"));
 
                     else {
-                        txtView.setText("Healthy Eye");
-                    txtView.setTextColor(Color.GREEN);
-                    txtView.setAllCaps(true);}
+                        txtView.setText("HEALTHY EYE");
+                        txtView.setTextColor(Color.GREEN);
+                        txtView.setTextSize(42);
+                    }
 
                     conn.disconnect();
                 } catch (Exception e) {
@@ -154,6 +158,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
 
         thread.start();
+
     }
 
 
@@ -208,9 +213,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (TransferState.COMPLETED == state) {
                         Toast.makeText(getApplicationContext(), "Upload Completed!", Toast.LENGTH_SHORT).show();
 
-                        file.delete();
+
                     } else if (TransferState.FAILED == state) {
-                        file.delete();
+
                     }
                 }
 
@@ -256,59 +261,58 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     private void downloadFile() {
-        imageView.setVisibility(View.INVISIBLE);
         txtView.setVisibility(View.VISIBLE);
 
 
-//        if (fileUri != null) {
-//
-//
-//            try {
-//                final File localFile = File.createTempFile("images", getFileExtension(fileUri));
-//
-//                TransferUtility transferUtility =
-//                        TransferUtility.builder()
-//                                .context(getApplicationContext())
-//                                .awsConfiguration(AWSMobileClient.getInstance().getConfiguration())
-//                                .s3Client(s3Client)
-//                                .build();
-//
-//                TransferObserver downloadObserver =
-//                        transferUtility.download("images/" + fileName, localFile);
-//
-//                downloadObserver.setTransferListener(new TransferListener() {
-//
-//                    @Override
-//                    public void onStateChanged(int id, TransferState state) {
-//                        if (TransferState.COMPLETED == state) {
-//                            Toast.makeText(getApplicationContext(), "Download Completed!", Toast.LENGTH_SHORT).show();
-//
-//                            tvFileName.setText(fileUri.toString() + "." + getFileExtension(fileUri));
-//                            Bitmap bmp = BitmapFactory.decodeFile(localFile.getAbsolutePath());
-//                            imageView.setImageBitmap(bmp);
-//                        }
-//                    }
-//
-//                    @Override
-//                    public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
-//                        float percentDonef = ((float) bytesCurrent / (float) bytesTotal) * 100;
-//                        int percentDone = (int) percentDonef;
-//
-//                        tvFileName.setText("ID:" + id + "|bytesCurrent: " + bytesCurrent + "|bytesTotal: " + bytesTotal + "|" + percentDone + "%");
-//                    }
-//
-//                    @Override
-//                    public void onError(int id, Exception ex) {
-//                        ex.printStackTrace();
-//                    }
-//
-//                });
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        } else {
-//            Toast.makeText(this, "Upload file before downloading", Toast.LENGTH_LONG).show();
-//        }
+        if (fileUri != null) {
+
+
+            try {
+                final File localFile = File.createTempFile("images", getFileExtension(fileUri));
+
+                TransferUtility transferUtility =
+                        TransferUtility.builder()
+                                .context(getApplicationContext())
+                                .awsConfiguration(AWSMobileClient.getInstance().getConfiguration())
+                                .s3Client(s3Client)
+                                .build();
+
+                TransferObserver downloadObserver =
+                        transferUtility.download("images/" + fileName, localFile);
+
+                downloadObserver.setTransferListener(new TransferListener() {
+
+                    @Override
+                    public void onStateChanged(int id, TransferState state) {
+                        if (TransferState.COMPLETED == state) {
+                            Toast.makeText(getApplicationContext(), "Download Completed!", Toast.LENGTH_SHORT).show();
+
+                            tvFileName.setText(fileUri.toString() + "." + getFileExtension(fileUri));
+                            Bitmap bmp = BitmapFactory.decodeFile(localFile.getAbsolutePath());
+                            imageView.setImageBitmap(bmp);
+                        }
+                    }
+
+                    @Override
+                    public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
+                        float percentDonef = ((float) bytesCurrent / (float) bytesTotal) * 100;
+                        int percentDone = (int) percentDonef;
+
+                        tvFileName.setText("ID:" + id + "|bytesCurrent: " + bytesCurrent + "|bytesTotal: " + bytesTotal + "|" + percentDone + "%");
+                    }
+
+                    @Override
+                    public void onError(int id, Exception ex) {
+                        ex.printStackTrace();
+                    }
+
+                });
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Toast.makeText(this, "Upload file before downloading", Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
