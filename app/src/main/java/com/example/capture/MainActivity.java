@@ -54,8 +54,9 @@ import java.net.URL;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private final String KEY = "******";
-    private final String SECRET = "************";
+    private final String KEY = "*****";
+    private final String SECRET = "*****";
+
 
     private AmazonS3Client s3Client;
     private BasicAWSCredentials credentials;
@@ -71,6 +72,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Uri fileUri;
     private Bitmap bitmap;
     String fileName;
+    StringBuilder req=new StringBuilder("images");
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -93,6 +97,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
     public void postRequest() throws IOException {
         StringBuilder response = new StringBuilder();
+        req.append("/");
+        req.append(fileName);
+        Log.i("******",req.toString());
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -107,17 +114,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     conn.setDoInput(true);
 
                     JSONObject jsonParam = new JSONObject();
-                    jsonParam.put("S3imgKey","images/IMG_20190303_180051.jpg");
-                    Log.i("JSON", jsonParam.toString());
+
+                    jsonParam.put("S3imgKey","images" + '/' +fileName);
+                    jsonParam.put("S3bucket","dataset-dr");
+
+                    Log.i("JSON!!!!!", jsonParam.toString());
                     DataOutputStream os = new DataOutputStream(conn.getOutputStream());
                     //os.writeBytes(URLEncoder.encode(jsonParam.toString(), "UTF-8"));
                     os.writeBytes(jsonParam.toString());
 
                     os.flush();
                     os.close();
+
                     InputStream inputStream;
                     //if (200 <= responseCode && responseCode <= 299) {
-                        inputStream = conn.getInputStream();
+                    inputStream = conn.getInputStream();
 //                    } else {
 //                        inputStream = conn.getErrorStream();
 //                    }
@@ -141,12 +152,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     //Log.i("MSG" , String.valueOf(response));
                     //Log.i("Body",value);
                     JSONObject jsonResponse = new JSONObject(response.toString());
-                    if(jsonResponse.has("Body"))
-                        txtView.setText(jsonResponse.getString("Body"));
-
-                    else {
-                        txtView.setText("HEALTHY EYE");
-                        txtView.setTextColor(Color.GREEN);
+                    Log.i("json response",jsonResponse.toString());
+                    //txtView.setVisibility(View.INVISIBLE);
+                    if(jsonResponse.has("body")) {
+                        Log.i("body:", jsonResponse.getString("body"));
+                        txtView.setText(jsonResponse.getString("body"));
+                        txtView.setTextColor(Color.rgb(138, 43, 226));
                         txtView.setTextSize(42);
                     }
 
@@ -187,6 +198,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
            // final File file = new File(MediaStore.Images.Media.EXTERNAL_CONTENT_URI+"/"+ fileName);
             final File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)+
                     "/Camera/" + fileName);
+
 
             //createFile(getApplicationContext(), fileUri, file);
 
@@ -261,8 +273,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     private void downloadFile() {
-        txtView.setVisibility(View.VISIBLE);
 
+        txtView.setVisibility(View.VISIBLE);
 
         if (fileUri != null) {
 
@@ -285,7 +297,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void onStateChanged(int id, TransferState state) {
                         if (TransferState.COMPLETED == state) {
-                            Toast.makeText(getApplicationContext(), "Download Completed!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), "Processing result!", Toast.LENGTH_SHORT).show();
 
                             tvFileName.setText(fileUri.toString() + "." + getFileExtension(fileUri));
                             Bitmap bmp = BitmapFactory.decodeFile(localFile.getAbsolutePath());
@@ -313,6 +325,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } else {
             Toast.makeText(this, "Upload file before downloading", Toast.LENGTH_LONG).show();
         }
+
+
     }
 
     @Override
@@ -330,6 +344,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         } else if (i == R.id.btn_download) {
             downloadFile();
+
         }
     }
 

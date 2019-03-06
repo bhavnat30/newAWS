@@ -4,9 +4,10 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:paddingLeft="16dp"
-    android:paddingRight="16dp">
+    android:paddingRight="16dp"
+    android:background="@color/buttonColor">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -14,34 +15,44 @@
 
         <Button
             android:id="@+id/btn_choose_file"
-            android:layout_width="0dp"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Choose File" />
+            android:layout_centerVertical="true"
+            android:layout_marginTop="20dp"
+            android:background="@color/black"
+            android:text="Choose File"
+            android:textColor="@color/buttonColor" />
 
-    </LinearLayout>
+    </RelativeLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <RelativeLayout
+        android:layout_width="400dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
         android:orientation="horizontal"
         android:weightSum="2">
 
         <Button
             android:id="@+id/btn_upload"
-            android:layout_width="0dp"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Upload" />
+            android:background="@color/black"
+            android:text="Upload"
+            android:textColor="@color/buttonColor" />
 
         <Button
             android:id="@+id/btn_download"
-            android:layout_width="0dp"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
+            android:layout_alignRight="@id/btn_upload"
+            android:layout_marginRight="-200dp"
             android:layout_weight="1"
-            android:text="Download" />
+            android:background="@color/black"
+            android:text="Process"
+            android:textColor="@color/buttonColor" />
 
-    </LinearLayout>
+    </RelativeLayout>
 
     <TextView
         android:id="@+id/tv_file_name"
@@ -51,7 +62,7 @@
         android:layout_margin="5dp"
         android:text="File Name" />
 
-    <RelativeLayout
+    <GridLayout
         android:layout_width="363dp"
         android:layout_height="561dp"
         android:orientation="vertical"
@@ -60,19 +71,21 @@
         <ImageView
             android:id="@+id/img_file"
             android:layout_width="match_parent"
-            android:layout_height="469dp"
+            android:layout_height="371dp"
             android:layout_weight="4.7"
             android:visibility="visible" />
 
         <TextView
             android:id="@+id/txtView"
             android:layout_width="match_parent"
-            android:layout_height="128dp"
-            android:layout_weight="4.7"
+            android:layout_height="248dp"
+            android:layout_alignParentRight="true"
             android:layout_centerHorizontal="true"
-            android:visibility="visible" />
+            android:layout_weight="4.7"
+            android:visibility="invisible" />
 
 
-    </RelativeLayout>
+
+    </GridLayout>
 
 </LinearLayout>
